@@ -23,19 +23,10 @@
         .code-font {
             font-family: 'JetBrains Mono', monospace;
         }
-        .gradient-text {
-            background: linear-gradient(90deg, #58a6ff, #bc8cff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
         .dev-card {
             background: #161b22;
             border: 1px solid var(--dev-border);
             border-radius: 12px;
-            transition: border-color 0.2s ease;
-        }
-        .dev-card:hover {
-            border-color: #444c56;
         }
         .dev-input {
             background: #0d1117;
@@ -45,7 +36,6 @@
         .dev-input:focus {
             border-color: var(--dev-accent);
             outline: none;
-            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
         }
         .terminal-header {
             background: #21262d;
@@ -61,20 +51,30 @@
             background-image: radial-gradient(#30363d 1px, transparent 1px);
             background-size: 40px 40px;
         }
+        .loader-bar {
+            height: 2px;
+            background: #58a6ff;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .analyzing-text {
+            animation: pulse-soft 1.5s infinite;
+        }
     </style>
 </head>
 <body class="min-h-screen grid-bg">
     <div id="app">
         <!-- Landing Page -->
         <div id="landing" class="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-            <div class="mb-6 inline-block px-4 py-1 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 text-xs font-bold code-font uppercase tracking-widest">
-                System Initialized v1.0
-            </div>
             <h1 class="text-7xl md:text-9xl font-bold mb-8 tracking-tighter text-white">
                 Builder<span class="text-blue-500">Index</span>
             </h1>
             <p class="text-xl text-gray-400 mb-12 max-w-2xl leading-relaxed font-light">
-                \\> Analyzing repositories to identify high-potential <span class="text-white font-medium">SaaS opportunities</span> unique to your technical stack.
+                \\> Analyzing repositories to identify high-potential <span class="text-white font-medium">SaaS opportunities</span>.
             </p>
             
             <div class="w-full max-w-xl dev-card shadow-2xl overflow-hidden text-left bg-[#0d1117]">
@@ -82,35 +82,32 @@
                     <div class="dot bg-[#ff5f56]"></div>
                     <div class="dot bg-[#ffbd2e]"></div>
                     <div class="dot bg-[#27c93f]"></div>
-                    <span class="ml-4 text-[10px] text-gray-500 code-font uppercase tracking-widest">auth-service / github-oauth</span>
+                    <span class="ml-4 text-[10px] text-gray-500 code-font uppercase tracking-widest">profile-scanner / v1.0</span>
                 </div>
                 <div class="p-10">
-                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4 code-font">Source Identity</label>
-                    <input type="text" id="username" placeholder="Username or Profile URL" 
-                        class="w-full px-5 py-4 dev-input rounded-lg mb-8 text-lg code-font transition-all border-[#30363d]">
-                    <button onclick="analyzeProfile()" id="analyzeBtn"
-                        class="w-full bg-[#3fb950] hover:bg-[#46c958] text-white font-bold py-5 rounded-lg transition duration-300 text-lg flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(63,185,80,0.2)]">
-                        Analyze My DNA <span class="text-white/50 text-xl">↵</span>
-                    </button>
-                    <div class="mt-6 flex items-center justify-between text-[10px] text-gray-600 code-font">
-                        <span>STATUS: READY</span>
-                        <span>SECURE CONNECTION</span>
+                    <div id="inputForm">
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-4 code-font">Source Identity</label>
+                        <input type="text" id="username" placeholder="Username or Profile URL" 
+                            class="w-full px-5 py-4 dev-input rounded-lg mb-8 text-lg code-font transition-all border-[#30363d]">
+                        <button onclick="startAnalysis()" id="analyzeBtn"
+                            class="w-full bg-[#3fb950] hover:bg-[#46c958] text-white font-bold py-5 rounded-lg transition duration-300 text-lg flex items-center justify-center gap-3">
+                            Analyze My DNA <span class="text-white/50 text-xl">↵</span>
+                        </button>
                     </div>
-                </div>
-            </div>
-            
-            <div class="mt-20 flex flex-wrap justify-center gap-16 opacity-40">
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-white mb-1">2.4k+</div>
-                    <div class="text-[10px] uppercase tracking-widest code-font">Analyzed</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-white mb-1">890+</div>
-                    <div class="text-[10px] uppercase tracking-widest code-font">Ideas Built</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-white mb-1">100%</div>
-                    <div class="text-[10px] uppercase tracking-widest code-font">Open Source</div>
+
+                    <!-- Loading State -->
+                    <div id="loadingState" class="hidden">
+                        <div class="mb-6 flex justify-between items-center text-xs code-font text-blue-400 uppercase tracking-widest">
+                            <span id="loadingTask" class="analyzing-text">Fetching Profile...</span>
+                            <span id="loadingPercent">0%</span>
+                        </div>
+                        <div class="w-full bg-[#161b22] h-1 rounded-full overflow-hidden mb-8">
+                            <div id="progressBar" class="loader-bar h-full"></div>
+                        </div>
+                        <div id="loadingLogs" class="text-[10px] text-gray-600 code-font h-20 overflow-hidden leading-relaxed">
+                            <!-- Logs appear here -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -118,14 +115,14 @@
         <!-- Results Page -->
         <div id="results" class="hidden p-6 md:p-12 max-w-7xl mx-auto py-16">
             <div class="flex flex-col md:flex-row items-center gap-10 mb-20 bg-[#161b22]/50 backdrop-blur-md p-10 rounded-3xl border border-[#30363d]">
-                <div class="relative group">
-                    <img id="avatar" src="" class="w-40 h-40 rounded-3xl border-2 border-white/5 shadow-2xl group-hover:border-blue-500/50 transition-all duration-500">
+                <div class="relative">
+                    <img id="avatar" src="" class="w-40 h-40 rounded-3xl border-2 border-white/5 shadow-2xl">
                     <div class="absolute -bottom-3 -right-3 bg-[#3fb950] px-3 py-1 rounded-lg border-4 border-[#0d1117] text-[10px] font-black text-white code-font">LIVE</div>
                 </div>
                 <div class="text-center md:text-left">
                     <div class="flex flex-wrap items-center gap-4 justify-center md:justify-start mb-2">
                         <h2 id="fullName" class="text-5xl font-bold text-white tracking-tighter"></h2>
-                        <span class="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase border border-blue-500/20 tracking-widest">Senior Architect</span>
+                        <span id="archetypeBadge" class="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-[10px] font-bold uppercase border border-purple-500/20 tracking-widest">Archetype Loading...</span>
                     </div>
                     <p id="githubLink" class="text-gray-500 text-xl code-font font-light"></p>
                 </div>
@@ -141,14 +138,14 @@
                 </div>
             </div>
 
-            <section>
+            <section id="ideasSection">
                 <div class="flex items-center justify-between mb-12 border-b border-gray-800 pb-8">
                     <h3 class="text-3xl font-bold text-white tracking-tighter flex items-center gap-4">
                         <span class="text-blue-500 code-font">></span> Target Ventures
                     </h3>
-                    <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                        <span id="ideaCountBadge" class="text-xs font-bold text-blue-400 uppercase tracking-widest code-font">3 Opportunities Found</span>
+                    <div id="resultsLoading" class="hidden items-center gap-3">
+                        <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        <span class="text-[10px] text-blue-400 code-font uppercase tracking-widest">Calculating next set...</span>
                     </div>
                 </div>
                 
@@ -157,7 +154,7 @@
                 </div>
 
                 <div id="generateMoreContainer" class="mt-20 text-center">
-                    <button id="generateMoreBtn" onclick="generateMore()"
+                    <button id="generateMoreBtn" onclick="triggerMore()"
                         class="group relative inline-flex items-center gap-3 bg-white text-black font-bold py-5 px-14 rounded-2xl transition-all duration-300 hover:scale-105">
                         Generate 3 More Ideas
                         <span class="text-gray-400 group-hover:text-black">→</span>
@@ -165,11 +162,10 @@
                 </div>
 
                 <!-- Email Gate -->
-                <div id="emailGate" class="hidden mt-20 p-16 dev-card text-center relative overflow-hidden bg-gradient-to-b from-[#161b22] to-[#0d1117]">
-                    <div class="absolute top-0 left-0 w-full h-[2px] bg-blue-500/30"></div>
+                <div id="emailGate" class="hidden mt-20 p-16 dev-card text-center relative overflow-hidden">
                     <div class="relative z-10">
-                        <h3 class="text-5xl font-bold mb-6 text-white tracking-tighter">Access Full Stack Index</h3>
-                        <p class="text-gray-400 mb-12 text-xl max-w-2xl mx-auto font-light">Your profile matches 14 additional high-yield SaaS archetypes. Verify your identity to unlock the full report.</p>
+                        <h3 class="text-5xl font-bold mb-6 text-white tracking-tighter text-left md:text-center">Access Full Stack Index</h3>
+                        <p class="text-gray-400 mb-12 text-xl max-w-2xl mx-auto font-light text-left md:text-center">We've identified more high-yield SaaS archetypes. Verify your identity to unlock the full report.</p>
                         <div class="max-w-xl mx-auto flex flex-col sm:flex-row gap-4">
                             <input type="email" id="userEmail" placeholder="founder@builderindex.io" 
                                 class="flex-grow px-7 py-5 rounded-xl dev-input focus:outline-none text-lg code-font border-[#30363d]">
@@ -189,20 +185,54 @@
         let ideasGenerated = 0;
         let isUnlocked = false;
 
-        async function analyzeProfile() {
+        async function startAnalysis() {
             let input = document.getElementById('username').value.trim();
             if (!input) return alert('Input Required');
 
+            document.getElementById('inputForm').classList.add('hidden');
+            document.getElementById('loadingState').classList.remove('hidden');
+            
+            const logs = [
+                "Establishing secure connection...",
+                "Decoding GitHub DNA...",
+                "Analyzing repository patterns...",
+                "Extracting tech stack fingerprints...",
+                "Calculating builder archetype...",
+                "Generating personalized SaaS opportunities...",
+                "Finalizing report..."
+            ];
+
+            let progress = 0;
+            const logEl = document.getElementById('loadingLogs');
+            const bar = document.getElementById('progressBar');
+            const percent = document.getElementById('loadingPercent');
+            const task = document.getElementById('loadingTask');
+
+            // Extraction Logic during "loading"
             let username = input;
             if (input.includes('github.com/')) {
-                const parts = input.split('github.com/');
-                username = parts[1].split('/')[0].split('?')[0];
+                username = input.split('github.com/')[1].split('/')[0].split('?')[0];
             }
 
-            const btn = document.getElementById('analyzeBtn');
-            btn.innerHTML = 'Executing Logic...';
-            btn.disabled = true;
+            const interval = setInterval(async () => {
+                progress += Math.floor(Math.random() * 15) + 5;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    setTimeout(() => finishAnalysis(username), 500);
+                }
+                
+                bar.style.width = progress + '%';
+                percent.innerText = progress + '%';
+                task.innerText = logs[Math.floor((progress/100) * (logs.length-1))];
+                
+                const log = document.createElement('div');
+                log.innerText = `[${new Date().toLocaleTimeString()}] ${logs[Math.floor(Math.random() * logs.length)]}`;
+                logEl.prepend(log);
+            }, 400);
+        }
 
+        async function finishAnalysis(username) {
             try {
                 const response = await fetch(`https://api.github.com/users/${username}`);
                 if (!response.ok) throw new Error('404: User Not Found');
@@ -212,13 +242,12 @@
                 const repos = await langResponse.json();
                 
                 const languages = Array.from(new Set(repos.map(r => r.language).filter(l => l)));
-                
                 currentUserData = { user, languages };
+                
                 displayResults(user, languages);
             } catch (error) {
                 alert(error.message);
-                btn.innerHTML = 'Analyze My DNA <span class="text-white/50 text-xl">↵</span>';
-                btn.disabled = false;
+                location.reload();
             }
         }
 
@@ -233,6 +262,21 @@
             document.getElementById('repoCount').innerText = user.public_repos;
             document.getElementById('followerCount').innerText = user.followers;
 
+            // Archetype Logic
+            const lang = languages[0] || 'Full Stack';
+            const archetypes = {
+                'Python': 'AI/ML Architect',
+                'JavaScript': 'Product Visionary',
+                'TypeScript': 'Scale Specialist',
+                'C++': 'System Core Engineer',
+                'Go': 'Cloud Infrastructure Lead',
+                'Ruby': 'Rapid Prototyping Expert',
+                'Java': 'Enterprise Strategist',
+                'Swift': 'Mobile Ecosystem Builder',
+                'PHP': 'Marketplace Pioneer'
+            };
+            document.getElementById('archetypeBadge').innerText = archetypes[lang] || 'Versatile Builder';
+
             generateInitialIdeas(languages);
         }
 
@@ -244,32 +288,45 @@
             ideasGenerated = 3;
         }
 
-        function generateMore() {
+        function triggerMore() {
             if (ideasGenerated >= 6 && !isUnlocked) {
                 document.getElementById('generateMoreContainer').classList.add('hidden');
                 document.getElementById('emailGate').classList.remove('hidden');
                 return;
             }
 
-            const ideas = getRandomIdeas(currentUserData.languages, 3);
-            ideas.forEach(idea => appendIdea(idea));
-            ideasGenerated += 3;
-            document.getElementById('ideaCountBadge').innerText = `${ideasGenerated} Opportunities Found`;
+            const btn = document.getElementById('generateMoreBtn');
+            const loading = document.getElementById('resultsLoading');
+            
+            btn.classList.add('opacity-50', 'pointer-events-none');
+            loading.classList.remove('hidden');
+            loading.classList.add('flex');
 
-            if (ideasGenerated >= 6 && !isUnlocked) {
-                document.getElementById('generateMoreContainer').classList.add('hidden');
-                document.getElementById('emailGate').classList.remove('hidden');
-            }
+            setTimeout(() => {
+                const ideas = getRandomIdeas(currentUserData.languages, 3);
+                ideas.forEach(idea => appendIdea(idea));
+                ideasGenerated += 3;
+                document.getElementById('ideaCountBadge').innerText = `${ideasGenerated} Opportunities Found`;
+
+                btn.classList.remove('opacity-50', 'pointer-events-none');
+                loading.classList.add('hidden');
+                loading.classList.remove('flex');
+
+                if (ideasGenerated >= 6 && !isUnlocked) {
+                    document.getElementById('generateMoreContainer').classList.add('hidden');
+                    document.getElementById('emailGate').classList.remove('hidden');
+                }
+            }, 2000); // 2 second fake "thinking"
         }
 
         function appendIdea(idea) {
             const grid = document.getElementById('ideasGrid');
             const card = document.createElement('div');
-            card.className = 'dev-card p-10 hover:bg-[#1c2128] transition-all duration-500 group cursor-default';
+            card.className = 'dev-card p-10 hover:bg-[#1c2128] transition-all duration-500 group';
             card.innerHTML = `
                 <div class="flex items-center justify-between mb-8">
                     <div class="text-5xl group-hover:scale-110 transition-transform duration-500">${idea.emoji}</div>
-                    <div class="h-2 w-2 rounded-full bg-blue-500/30 group-hover:bg-blue-500 transition-colors"></div>
+                    <div class="text-[9px] text-gray-600 font-bold uppercase tracking-widest code-font">INDEX_ID: ${Math.floor(Math.random() * 9000) + 1000}</div>
                 </div>
                 <h4 class="text-2xl font-bold mb-4 text-white tracking-tighter group-hover:text-blue-400 transition-colors">${idea.title}</h4>
                 <p class="text-gray-500 mb-10 leading-relaxed font-light text-base">${idea.desc}</p>
@@ -282,8 +339,7 @@
 
         function unlockUnlimited() {
             const email = document.getElementById('userEmail').value;
-            if (!email || !email.includes('@')) return alert('Invalid Email Protocol');
-            
+            if (!email || !email.includes('@')) return alert('Invalid Protocol');
             isUnlocked = true;
             document.getElementById('emailGate').classList.add('hidden');
             document.getElementById('generateMoreContainer').classList.remove('hidden');
@@ -293,20 +349,19 @@
         function getRandomIdeas(userLangs, count) {
             const lang = userLangs[0] || 'Web';
             const allIdeas = [
-                { title: `AI-Powered ${lang} Auditor`, desc: `Scanning ${lang} codebases for security vulnerabilities using LLMs.`, emoji: '🛡️', tags: ['AI', 'Security', lang] },
-                { title: `${lang} Performance Suite`, desc: `Real-time monitoring tool specifically optimized for ${lang} backend services.`, emoji: '⚡', tags: ['DevOps', 'Cloud', lang] },
-                { title: `Micro-SaaS for ${lang} Teams`, desc: `A collaboration layer that integrates directly into the ${lang} build pipeline.`, emoji: '🤝', tags: ['B2B', 'SaaS', lang] },
-                { title: `Automated Documentation`, desc: `Generates beautiful, interactive documentation sites from your code comments.`, emoji: '📚', tags: ['DevTools', 'UI'] },
-                { title: `Error Prediction Engine`, desc: `Uses historical commit data to predict where the next bug will likely occur.`, emoji: '🔮', tags: ['AI', 'ML'] },
-                { title: `Visual API Designer`, desc: `A drag-and-drop tool to design and deploy production-ready APIs in minutes.`, emoji: '🎨', tags: ['Low-Code', 'API'] },
-                { title: `Repo to Landing Page`, desc: `Instantly turns any GitHub repo into a high-converting landing page for marketing.`, emoji: '🌐', tags: ['Marketing', 'No-Code'] },
-                { title: `Smart Pull Request Reviewer`, desc: `An AI agent that provides deep context-aware feedback on complex logic changes.`, emoji: '🤖', tags: ['AI', 'productivity'] },
-                { title: `Dependency Health Monitor`, desc: `Tracks the financial and security health of all your open-source dependencies.`, emoji: '❤️', tags: ['OSS', 'Audit'] },
-                { title: `Team Velocity Analytics`, desc: `Advanced dashboard showing team output without the typical toxic metrics.`, emoji: '📈', tags: ['Management', 'HR'] },
-                { title: `Custom CLI Generator`, desc: `A tool to build and distribute beautiful command line interfaces for your team.`, emoji: '⌨️', tags: ['DevTools', 'CLI'] },
-                { title: `Database Schema Visualizer`, desc: `Live, collaborative mapping of your production database schemas and relations.`, emoji: '🗺️', tags: ['Database', 'Web'] }
+                { title: `AI-Powered ${lang} Auditor`, desc: `Automated security and performance auditing for ${lang} systems.`, emoji: '🛡️', tags: ['AI', 'Security', lang] },
+                { title: `${lang} Performance Suite`, desc: `Real-time optimization engine for high-traffic ${lang} backends.`, emoji: '⚡', tags: ['DevOps', 'Cloud', lang] },
+                { title: `Micro-SaaS for ${lang} Teams`, desc: `Collaboration protocols designed for specialized ${lang} engineering teams.`, emoji: '🤝', tags: ['B2B', 'SaaS', lang] },
+                { title: `Automated Documentation`, desc: `Self-updating technical blueprints generated from codebase logic.`, emoji: '📚', tags: ['DevTools', 'UI'] },
+                { title: `Error Prediction Engine`, desc: `ML model trained on commit history to identify pre-deployment risks.`, emoji: '🔮', tags: ['AI', 'ML'] },
+                { title: `Visual API Designer`, desc: `Low-code environment for mapping and deploying ${lang} service layers.`, emoji: '🎨', tags: ['Low-Code', 'API'] },
+                { title: `Repo to Landing Page`, desc: `Conversion-optimized landing pages generated from repo READMEs.`, emoji: '🌐', tags: ['Marketing', 'No-Code'] },
+                { title: `Smart PR Reviewer`, desc: `AI agent providing architectural feedback on pull requests.`, emoji: '🤖', tags: ['AI', 'productivity'] },
+                { title: `Dependency Health Monitor`, desc: `Vulnerability mapping across entire open-source supply chains.`, emoji: '❤️', tags: ['OSS', 'Audit'] },
+                { title: `Team Velocity Analytics`, desc: `Output tracking without human-in-the-loop bias.`, emoji: '📈', tags: ['Management', 'HR'] },
+                { title: `Custom CLI Generator`, desc: `Binary generation protocols for internal developer tools.`, emoji: '⌨️', tags: ['DevTools', 'CLI'] },
+                { title: `Schema Visualizer`, desc: `Collaborative relational mapping for production databases.`, emoji: '🗺️', tags: ['Database', 'Web'] }
             ];
-            
             return allIdeas.sort(() => 0.5 - Math.random()).slice(0, count);
         }
     </script>
